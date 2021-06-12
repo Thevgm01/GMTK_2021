@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-public class PlayerSpring : MonoBehaviour
+public class Spring : MonoBehaviour
 {
     [Header("Spring")]
     public GameObject springSegment;
@@ -12,20 +12,14 @@ public class PlayerSpring : MonoBehaviour
     [Range(0, 1)]
     public float totalSpringMass = 0.1f;
 
-    [SerializeField, HideInInspector]
-    private List<GameObject> segments = new List<GameObject>();
-    private Dictionary<GameObject, ConfigurableJoint> segmentJoints;
-    private Dictionary<GameObject, Rigidbody> segmentRigidbodies;
-
-    [Header("Walking")]
-    [Range(0, 1)]
-    public float walkHeight = 0.5f;
-
-    [Header("Grabbing")]
-    [Tooltip("In pixels")]
-    public float maxGrabDistance = 50;
-    public float grabForceMultiplier = 1f;
-    public float maxGrabForce = 1f;
+    [HideInInspector]
+    public List<GameObject> segments = new List<GameObject>();
+    public Dictionary<GameObject, ConfigurableJoint> segmentJoints;
+    public Dictionary<GameObject, Rigidbody> segmentRigidbodies;
+    float _defaultStiffness;
+    float _springWidth;
+    public float defaultStiffness { get => _defaultStiffness; }
+    public float springWidth { get => _springWidth; }
 
     [Header("Visual")]
     public float numTwists = 20;
@@ -33,15 +27,10 @@ public class PlayerSpring : MonoBehaviour
     public int linePointsPerSegment = 1;
     LineRenderer springPath;
 
-    Camera mainCam;
-    GameObject segmentA, segmentB;
-    GameObject controlled;
-    Rigidbody grabTarget;
-
     public void OnValidate()
     {
         SetSegments();
-        SetMassPerSpring();
+        SetMassPerSpring(totalSpringMass);
     }
 
     private void SetSegments()
@@ -77,20 +66,30 @@ public class PlayerSpring : MonoBehaviour
         DestroyImmediate(g);
     }
 
-    private void SetMassPerSpring()
+    public void SetMassPerSpring(float mass)
     {
+        totalSpringMass = mass;
         float massPerSpring = totalSpringMass / numSegments;
         foreach (var segment in segments)
             segment.GetComponent<Rigidbody>().mass = massPerSpring;
     }
 
-    void Start()
+    public void SetStiffnessPerJoint(float startStiffness, float endStiffness)
     {
-        mainCam = Camera.main;
-        segmentA = segments[0];
-        segmentB = segments[segments.Count - 1];
+        for (int i = 0; i < segments.Count - 1; ++i)
+        {
+            float frac = (float)i / (segments.Count - 2);
+            float spring = Mathf.Lerp(startStiffness, endStiffness, frac);
+            var segmentJoint = segmentJoints[segments[i]];
+            var drive = segmentJoint.angularYZDrive;
+            drive.positionSpring = spring;
+            segmentJoint.angularYZDrive = drive;
+        }
+    }
 
-        ConfigurableJoint lastJoint = segmentB.GetComponent<ConfigurableJoint>();
+    void Awake()
+    {
+        ConfigurableJoint lastJoint = segments[segments.Count - 1].GetComponent<ConfigurableJoint>();
         Destroy(lastJoint);
 
         segmentJoints = new Dictionary<GameObject, ConfigurableJoint>();
@@ -100,48 +99,10 @@ public class PlayerSpring : MonoBehaviour
             segmentJoints.Add(segment, segment.GetComponent<ConfigurableJoint>());
             segmentRigidbodies.Add(segment, segment.GetComponent<Rigidbody>());
         }
-
-        controlled = segmentA;
-        segmentRigidbodies[segmentA].isKinematic = true;
+        _defaultStiffness = segmentJoints[segments[0]].angularYZDrive.positionSpring;
+        _springWidth = segments[0].GetComponent<BoxCollider>().bounds.size.x / 2f;
 
         springPath = GetComponent<LineRenderer>();
-    }
-
-    void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Vector3 segmentA_screenCoords = mainCam.WorldToScreenPoint(segmentA.transform.position);
-            Vector3 segmentB_screenCoords = mainCam.WorldToScreenPoint(segmentB.transform.position);
-            float segmentA_mouseDistance = Vector3.Distance(segmentA_screenCoords, Input.mousePosition);
-            float segmentB_mouseDistance = Vector3.Distance(segmentB_screenCoords, Input.mousePosition);
-            bool segmentA_inGrabRange = segmentA_mouseDistance <= maxGrabDistance;
-            bool segmentB_inGrabRange = segmentB_mouseDistance <= maxGrabDistance;
-            if (segmentA_inGrabRange && segmentA_mouseDistance < segmentB_mouseDistance)
-                Grab(segmentA);
-            else if (segmentB_inGrabRange && segmentB_mouseDistance < segmentA_mouseDistance)
-                Grab(segmentB);
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            Ungrab();
-        }
-
-        Vector3 newCamPos = GetAveragePosition();
-        newCamPos.z = mainCam.transform.position.z;
-        mainCam.transform.position = newCamPos;
-    }
-
-    void FixedUpdate()
-    {
-        if (grabTarget != null)
-        {
-            Vector3 target_screenCoords = mainCam.WorldToScreenPoint(grabTarget.position);
-            Vector3 grabForce = Input.mousePosition - target_screenCoords;
-            grabForce = grabForce * grabForceMultiplier;
-            grabForce = Vector3.ClampMagnitude(grabForce, maxGrabForce);
-            grabTarget.AddForce(grabForce * Time.fixedDeltaTime);
-        }
     }
 
     private void LateUpdate()
@@ -149,19 +110,9 @@ public class PlayerSpring : MonoBehaviour
         CalculateSpringPath();
     }
 
-    private void Grab(GameObject target)
-    {
-        grabTarget = target.GetComponent<Rigidbody>();
-    }
-
-    private void Ungrab()
-    {
-        grabTarget = null;
-    }
-
     private void CalculateSpringPath()
     {
-        Vector3 startVector = Vector3.right * 0.5f;
+        Vector3 startVector = Vector3.right * springWidth;
         float curAngle = 0;
         float twistPerPoint = numTwists * 360 / (segments.Count * linePointsPerSegment);
         int index = 0;
@@ -195,10 +146,5 @@ public class PlayerSpring : MonoBehaviour
                 }
             }
         }
-    }
-
-    public Vector3 GetAveragePosition()
-    {
-        return (segmentA.transform.position + segmentB.transform.position) / 2f;
     }
 }
