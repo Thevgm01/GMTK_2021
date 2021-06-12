@@ -107,9 +107,9 @@ public class Controllable
                 if (bothBottomTouching)
                     averageNormal /= 2f;
 
-                Debug.DrawRay(rb.position, averageNormal, Color.red);
                 float surfaceAngle = Mathf.Atan2(averageNormal.y, averageNormal.x) * Mathf.Rad2Deg - 90;
-                Quaternion desiredRotation = Quaternion.Euler(0, 0, surfaceAngle);
+                float upAngle = Mathf.Atan2(localUp.y, localUp.x) * Mathf.Rad2Deg - 90;
+                Quaternion desiredRotation = Quaternion.Euler(0, 0, surfaceAngle - upAngle);
                 Quaternion newRotation = Quaternion.Slerp(rb.rotation, desiredRotation, rotationAlignmentSpeed);
                 rb.MoveRotation(newRotation);
             }
@@ -117,6 +117,8 @@ public class Controllable
             {
                 if (hitDistances[LEFT] > 0) rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z - rotationAlignmentSpeed * 50));
                 if (hitDistances[RIGHT] > 0) rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z + rotationAlignmentSpeed * 50));
+                if (hitDistances[LEFT] > 0 || hitDistances[RIGHT] > 0)
+                    overallMove += new Vector3(0, -heightAlignmentSpeed, 0);
             }
         }
     }
@@ -145,7 +147,7 @@ public class Controllable
             float horizontal = input * moveSpeed;
             if ((horizontal < 0 && (hitDistances[LEFT] == 0f || hitDistances[LEFT] > 0.2f)) ||
                 (horizontal > 0 && (hitDistances[RIGHT] == 0f || hitDistances[RIGHT] > 0.2f)))
-                overallMove += transform.rotation * new Vector3(horizontal, 0, 0);
+                overallMove += transform.rotation * localRight * horizontal;
             rb.MovePosition(rb.position + overallMove);
             overallMove = Vector3.zero;
         }
