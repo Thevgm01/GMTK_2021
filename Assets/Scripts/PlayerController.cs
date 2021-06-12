@@ -7,16 +7,58 @@ public class PlayerController : MonoBehaviour
     [Header("Walking")]
     [Range(0, 1)]
     public float walkHeight = 0.5f;
-    /*
-    [Header("Grabbing")]
-    [Tooltip("In pixels")]
-    public float maxGrabDistance = 50;
-    public float grabForceMultiplier = 1f;
-    public float maxGrabForce = 1f;
-    */
 
     Spring spring;
-    GameObject segmentA, segmentB;
+
+    private enum State
+    {
+        Free,
+        Locked,
+        Controlled
+    }
+
+    private class Controllable
+    {
+        private GameObject segment;
+        private Transform transform;
+        private Rigidbody rb;
+        private float radius;
+        private Vector3 localUp;
+        private Vector3 localRight;
+        private State state;
+
+        public Vector3 position { get => transform.position; }
+
+        public Controllable(GameObject segment, Vector3 localUp, Vector3 localRight)
+        {
+            this.segment = segment;
+            transform = segment.transform;
+            rb = segment.GetComponent<Rigidbody>();
+            radius = segment.GetComponent<BoxCollider>().bounds.size.x / 2f;
+            this.localUp = localUp;
+            this.localRight = localRight;
+            state = State.Free;
+        }
+
+        public void DoRaycastTests()
+        {
+            for (int side = -1; side <= 1; side += 2)
+            {
+                Vector3 raycastPosition = localRight * radius * side;
+                for (int dir = 0; dir <= 1; dir++)
+                {
+                    Vector3 rotatedPosition = transform.rotation * raycastPosition;
+                    rotatedPosition += transform.position;
+                    Vector3 raycastDirection = dir == 0 ? raycastDirection = localRight * side : -localUp;
+                    raycastDirection = transform.rotation * raycastDirection;
+                    Debug.DrawRay(rotatedPosition, raycastDirection);
+                }
+            }
+        }
+    }
+
+    Controllable head, tail;
+    Controllable controlled;
 
     // Start is called before the first frame update
     void Awake()
@@ -26,87 +68,35 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        spring.SetStiffnessPerJoint(50, spring.defaultStiffness);
+        head = new Controllable(spring.segments[0], Vector3.up, Vector3.right);
+        tail = new Controllable(spring.segments[spring.segments.Count - 1], Vector3.down, Vector3.left);
     }
 
     // Update is called once per frame
     void Update()
     {
-        
-    }
-    /*
-    void Start()
-    {
-        mainCam = Camera.main;
-        segmentA = segments[0];
-        segmentB = segments[segments.Count - 1];
-
-        ConfigurableJoint lastJoint = segmentB.GetComponent<ConfigurableJoint>();
-        Destroy(lastJoint);
-
-        segmentJoints = new Dictionary<GameObject, ConfigurableJoint>();
-        segmentRigidbodies = new Dictionary<GameObject, Rigidbody>();
-        foreach (var segment in segments)
+        if (Input.GetKeyDown(KeyCode.Tab))
         {
-            segmentJoints.Add(segment, segment.GetComponent<ConfigurableJoint>());
-            segmentRigidbodies.Add(segment, segment.GetComponent<Rigidbody>());
-        }
-
-        controlled = segmentA;
-        segmentRigidbodies[segmentA].isKinematic = true;
-
-        springPath = GetComponent<LineRenderer>();
-    }
-
-    void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Vector3 segmentA_screenCoords = mainCam.WorldToScreenPoint(segmentA.transform.position);
-            Vector3 segmentB_screenCoords = mainCam.WorldToScreenPoint(segmentB.transform.position);
-            float segmentA_mouseDistance = Vector3.Distance(segmentA_screenCoords, Input.mousePosition);
-            float segmentB_mouseDistance = Vector3.Distance(segmentB_screenCoords, Input.mousePosition);
-            bool segmentA_inGrabRange = segmentA_mouseDistance <= maxGrabDistance;
-            bool segmentB_inGrabRange = segmentB_mouseDistance <= maxGrabDistance;
-            if (segmentA_inGrabRange && segmentA_mouseDistance < segmentB_mouseDistance)
-                Grab(segmentA);
-            else if (segmentB_inGrabRange && segmentB_mouseDistance < segmentA_mouseDistance)
-                Grab(segmentB);
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            Ungrab();
-        }
-
-        Vector3 newCamPos = GetAveragePosition();
-        newCamPos.z = mainCam.transform.position.z;
-        mainCam.transform.position = newCamPos;
-    }
-
-    void FixedUpdate()
-    {
-        if (grabTarget != null)
-        {
-            Vector3 target_screenCoords = mainCam.WorldToScreenPoint(grabTarget.position);
-            Vector3 grabForce = Input.mousePosition - target_screenCoords;
-            grabForce = grabForce * grabForceMultiplier;
-            grabForce = Vector3.ClampMagnitude(grabForce, maxGrabForce);
-            grabTarget.AddForce(grabForce * Time.fixedDeltaTime);
+            if (controlled.Equals(head) || controlled == null)
+            {
+                controlled = head;
+            }
+            else
+            {
+                controlled = tail;
+            }
         }
     }
 
-    private void Grab(GameObject target)
+    private void FixedUpdate()
     {
-        grabTarget = target.GetComponent<Rigidbody>();
+        head.DoRaycastTests();
+        tail.DoRaycastTests();
+        //Physics.Raycast(controlled.transform.position)
     }
 
-    private void Ungrab()
-    {
-        grabTarget = null;
-    }
-    */
     public Vector3 GetAveragePosition()
     {
-        return (segmentA.transform.position + segmentB.transform.position) / 2f;
+        return (head.position + tail.position) / 2f;
     }
 }

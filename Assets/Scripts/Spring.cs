@@ -17,9 +17,9 @@ public class Spring : MonoBehaviour
     public Dictionary<GameObject, ConfigurableJoint> segmentJoints;
     public Dictionary<GameObject, Rigidbody> segmentRigidbodies;
     float _defaultStiffness;
-    float _springWidth;
+    float _springRadius;
     public float defaultStiffness { get => _defaultStiffness; }
-    public float springWidth { get => _springWidth; }
+    public float springRadius { get => _springRadius; }
 
     [Header("Visual")]
     public float numTwists = 20;
@@ -100,7 +100,7 @@ public class Spring : MonoBehaviour
             segmentRigidbodies.Add(segment, segment.GetComponent<Rigidbody>());
         }
         _defaultStiffness = segmentJoints[segments[0]].angularYZDrive.positionSpring;
-        _springWidth = segments[0].GetComponent<BoxCollider>().bounds.size.x / 2f;
+        _springRadius = segments[0].GetComponent<BoxCollider>().bounds.size.x / 2f;
 
         springPath = GetComponent<LineRenderer>();
     }
@@ -112,7 +112,7 @@ public class Spring : MonoBehaviour
 
     private void CalculateSpringPath()
     {
-        Vector3 startVector = Vector3.right * springWidth;
+        Vector3 startVector = Vector3.right * springRadius;
         float curAngle = 0;
         float twistPerPoint = numTwists * 360 / (segments.Count * linePointsPerSegment);
         int index = 0;
