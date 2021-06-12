@@ -6,59 +6,19 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Walking")]
     [Range(0, 1)]
+    public LayerMask collisionLayers;
+    public float rayDistance = 1f;
     public float walkHeight = 0.5f;
+    public float walkSpeed = 1f;
+    public float heightAlignmentSpeed = 3f;
+    public float rotationAlignmentSpeed = 5f;
 
     Spring spring;
 
-    private enum State
-    {
-        Free,
-        Locked,
-        Controlled
-    }
-
-    private class Controllable
-    {
-        private GameObject segment;
-        private Transform transform;
-        private Rigidbody rb;
-        private float radius;
-        private Vector3 localUp;
-        private Vector3 localRight;
-        private State state;
-
-        public Vector3 position { get => transform.position; }
-
-        public Controllable(GameObject segment, Vector3 localUp, Vector3 localRight)
-        {
-            this.segment = segment;
-            transform = segment.transform;
-            rb = segment.GetComponent<Rigidbody>();
-            radius = segment.GetComponent<BoxCollider>().bounds.size.x / 2f;
-            this.localUp = localUp;
-            this.localRight = localRight;
-            state = State.Free;
-        }
-
-        public void DoRaycastTests()
-        {
-            for (int side = -1; side <= 1; side += 2)
-            {
-                Vector3 raycastPosition = localRight * radius * side;
-                for (int dir = 0; dir <= 1; dir++)
-                {
-                    Vector3 rotatedPosition = transform.rotation * raycastPosition;
-                    rotatedPosition += transform.position;
-                    Vector3 raycastDirection = dir == 0 ? raycastDirection = localRight * side : -localUp;
-                    raycastDirection = transform.rotation * raycastDirection;
-                    Debug.DrawRay(rotatedPosition, raycastDirection);
-                }
-            }
-        }
-    }
-
     Controllable head, tail;
     Controllable controlled;
+
+    float hInputSum;
 
     // Start is called before the first frame update
     void Awake()
@@ -68,8 +28,8 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        head = new Controllable(spring.segments[0], Vector3.up, Vector3.right);
-        tail = new Controllable(spring.segments[spring.segments.Count - 1], Vector3.down, Vector3.left);
+        head = new Controllable(spring.segments[0], collisionLayers, Vector3.up, Vector3.right);
+        tail = new Controllable(spring.segments[spring.segments.Count - 1], collisionLayers, Vector3.down, Vector3.left);
     }
 
     // Update is called once per frame
@@ -77,22 +37,32 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            if (controlled.Equals(head) || controlled == null)
+            if (controlled == null || controlled == tail)
             {
                 controlled = head;
+                head.AssumeControl();
+                tail.RemoveControl();
+                spring.SetStiffnessPerJoint(50, spring.defaultStiffness);
             }
             else
             {
                 controlled = tail;
+                tail.AssumeControl();
+                head.RemoveControl();
+                spring.SetStiffnessPerJoint(spring.defaultStiffness, 50);
             }
         }
+
+        hInputSum += Input.GetAxisRaw("Horizontal") * Time.deltaTime;
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
-        head.DoRaycastTests();
-        tail.DoRaycastTests();
-        //Physics.Raycast(controlled.transform.position)
+        head.DoRaycastTests(rayDistance, walkHeight, heightAlignmentSpeed, rotationAlignmentSpeed);
+        tail.DoRaycastTests(rayDistance, walkHeight, heightAlignmentSpeed, rotationAlignmentSpeed);
+        controlled?.ApplyMovement(hInputSum, walkSpeed);
+
+        hInputSum = 0;
     }
 
     public Vector3 GetAveragePosition()
