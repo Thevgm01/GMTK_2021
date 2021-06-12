@@ -14,8 +14,12 @@ public class PlayerSpring : MonoBehaviour
 
     [SerializeField, HideInInspector]
     private List<GameObject> segments = new List<GameObject>();
-    private List<ConfigurableJoint> segmentJoints;
-    private List<Rigidbody> segmentRigidbodies;
+    private Dictionary<GameObject, ConfigurableJoint> segmentJoints;
+    private Dictionary<GameObject, Rigidbody> segmentRigidbodies;
+
+    [Header("Walking")]
+    [Range(0, 1)]
+    public float walkHeight = 0.5f;
 
     [Header("Grabbing")]
     [Tooltip("In pixels")]
@@ -31,6 +35,7 @@ public class PlayerSpring : MonoBehaviour
 
     Camera mainCam;
     GameObject segmentA, segmentB;
+    GameObject controlled;
     Rigidbody grabTarget;
 
     public void OnValidate()
@@ -88,13 +93,16 @@ public class PlayerSpring : MonoBehaviour
         ConfigurableJoint lastJoint = segmentB.GetComponent<ConfigurableJoint>();
         Destroy(lastJoint);
 
-        segmentJoints = new List<ConfigurableJoint>();
-        segmentRigidbodies = new List<Rigidbody>();
+        segmentJoints = new Dictionary<GameObject, ConfigurableJoint>();
+        segmentRigidbodies = new Dictionary<GameObject, Rigidbody>();
         foreach (var segment in segments)
         {
-            segmentJoints.Add(segment.GetComponent<ConfigurableJoint>());
-            segmentRigidbodies.Add(segment.GetComponent<Rigidbody>());
+            segmentJoints.Add(segment, segment.GetComponent<ConfigurableJoint>());
+            segmentRigidbodies.Add(segment, segment.GetComponent<Rigidbody>());
         }
+
+        controlled = segmentA;
+        segmentRigidbodies[segmentA].isKinematic = true;
 
         springPath = GetComponent<LineRenderer>();
     }
