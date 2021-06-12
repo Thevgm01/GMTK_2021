@@ -18,6 +18,11 @@ public class PlayerSpring : MonoBehaviour
     public float grabForceMultiplier = 1f;
     public float maxGrabForce = 1f;
 
+    [Header("Spring")]
+    public float numTwists = 20;
+    [Range(1, 30)]
+    public int linePointsPerSegment = 1;
+    LineRenderer springPath;
 
     Camera mainCam;
     GameObject segmentA, segmentB;
@@ -68,11 +73,13 @@ public class PlayerSpring : MonoBehaviour
         segmentB = segments[segments.Count - 1];
         ConfigurableJoint lastJoint = segmentB.GetComponent<ConfigurableJoint>();
         Destroy(lastJoint);
+
+        springPath = GetComponent<LineRenderer>();
     }
 
     void Update()
     {
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButtonDown(0))
         {
             Vector3 segmentA_screenCoords = mainCam.WorldToScreenPoint(segmentA.transform.position);
             Vector3 segmentB_screenCoords = mainCam.WorldToScreenPoint(segmentB.transform.position);
@@ -100,7 +107,44 @@ public class PlayerSpring : MonoBehaviour
             grabForce = grabForce * grabForceMultiplier;
             grabForce = Vector3.ClampMagnitude(grabForce, maxGrabForce);
             grabTarget.AddForce(grabForce * Time.fixedDeltaTime);
-            Debug.Log(grabForce.magnitude);
+        }
+    }
+
+    private void LateUpdate()
+    {
+        Vector3 startVector = Vector3.right * 0.5f;
+        float curAngle = 0;
+        float twistPerPoint = numTwists * 360 / (segments.Count * linePointsPerSegment);
+        int index = 0;
+        springPath.positionCount = (segments.Count - 1) * linePointsPerSegment + 1;
+
+        for (int i = 0; i < segments.Count; ++i)
+        {
+            Transform segment = segments[i].transform;
+
+            Quaternion rotation = segment.rotation * Quaternion.Euler(0, curAngle, 0);
+            Vector3 newPoint = rotation * startVector + segment.position;
+            springPath.SetPosition(index++, newPoint);
+
+            curAngle += twistPerPoint;
+
+            if (i < segments.Count - 1)
+            {
+                Transform next = segments[i + 1].transform;
+
+                for (int j = 1; j < linePointsPerSegment; ++j)
+                {
+                    float frac = (float)j / linePointsPerSegment;
+
+                    Quaternion slerpRotation = Quaternion.Slerp(segment.rotation, next.rotation, frac);
+                    slerpRotation = slerpRotation * Quaternion.Euler(0, curAngle, 0);
+                    Vector3 lerpPosition = Vector3.Lerp(segment.position, next.position, frac);
+                    newPoint = slerpRotation * startVector + lerpPosition;
+                    springPath.SetPosition(index++, newPoint);
+
+                    curAngle += twistPerPoint;
+                }
+            }
         }
     }
 
