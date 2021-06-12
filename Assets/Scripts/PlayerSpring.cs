@@ -5,12 +5,17 @@ using UnityEditor;
 
 public class PlayerSpring : MonoBehaviour
 {
+    [Header("Spring")]
     public GameObject springSegment;
     [Range(0, 30)]
     public int numSegments = 5;
+    [Range(0, 1)]
+    public float totalSpringMass = 0.1f;
 
     [SerializeField, HideInInspector]
     private List<GameObject> segments = new List<GameObject>();
+    private List<ConfigurableJoint> segmentJoints;
+    private List<Rigidbody> segmentRigidbodies;
 
     [Header("Grabbing")]
     [Tooltip("In pixels")]
@@ -18,7 +23,7 @@ public class PlayerSpring : MonoBehaviour
     public float grabForceMultiplier = 1f;
     public float maxGrabForce = 1f;
 
-    [Header("Spring")]
+    [Header("Visual")]
     public float numTwists = 20;
     [Range(1, 30)]
     public int linePointsPerSegment = 1;
@@ -31,6 +36,7 @@ public class PlayerSpring : MonoBehaviour
     public void OnValidate()
     {
         SetSegments();
+        SetMassPerSpring();
     }
 
     private void SetSegments()
@@ -49,7 +55,7 @@ public class PlayerSpring : MonoBehaviour
             GameObject newSegment = (GameObject)PrefabUtility.InstantiatePrefab(springSegment);
             newSegment.transform.parent = transform;
             newSegment.transform.localPosition = Vector3.zero;
-            newSegment.name = "Spring " + numSegments;
+            newSegment.name = "Spring " + (segments.Count + 1);
             if (segments.Count > 0)
             {
                 GameObject previousSegment = segments[segments.Count - 1];
@@ -66,13 +72,29 @@ public class PlayerSpring : MonoBehaviour
         DestroyImmediate(g);
     }
 
+    private void SetMassPerSpring()
+    {
+        float massPerSpring = totalSpringMass / numSegments;
+        foreach (var segment in segments)
+            segment.GetComponent<Rigidbody>().mass = massPerSpring;
+    }
+
     void Start()
     {
         mainCam = Camera.main;
         segmentA = segments[0];
         segmentB = segments[segments.Count - 1];
+
         ConfigurableJoint lastJoint = segmentB.GetComponent<ConfigurableJoint>();
         Destroy(lastJoint);
+
+        segmentJoints = new List<ConfigurableJoint>();
+        segmentRigidbodies = new List<Rigidbody>();
+        foreach (var segment in segments)
+        {
+            segmentJoints.Add(segment.GetComponent<ConfigurableJoint>());
+            segmentRigidbodies.Add(segment.GetComponent<Rigidbody>());
+        }
 
         springPath = GetComponent<LineRenderer>();
     }
@@ -112,6 +134,21 @@ public class PlayerSpring : MonoBehaviour
 
     private void LateUpdate()
     {
+        CalculateSpringPath();
+    }
+
+    private void Grab(GameObject target)
+    {
+        grabTarget = target.GetComponent<Rigidbody>();
+    }
+
+    private void Ungrab()
+    {
+        grabTarget = null;
+    }
+
+    private void CalculateSpringPath()
+    {
         Vector3 startVector = Vector3.right * 0.5f;
         float curAngle = 0;
         float twistPerPoint = numTwists * 360 / (segments.Count * linePointsPerSegment);
@@ -146,15 +183,5 @@ public class PlayerSpring : MonoBehaviour
                 }
             }
         }
-    }
-
-    private void Grab(GameObject target)
-    {
-        grabTarget = target.GetComponent<Rigidbody>();
-    }
-
-    private void Ungrab()
-    {
-        grabTarget = null;
     }
 }
