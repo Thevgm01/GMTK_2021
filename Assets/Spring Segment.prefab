@@ -116,7 +116,7 @@ ConfigurableJoint:
   m_TargetVelocity: {x: 0, y: 0, z: 0}
   m_XDrive:
     serializedVersion: 3
-    positionSpring: 10
+    positionSpring: 30
     positionDamper: 0
     maximumForce: 3.4028233e+38
   m_YDrive:

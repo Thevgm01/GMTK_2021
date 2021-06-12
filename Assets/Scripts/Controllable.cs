@@ -20,7 +20,9 @@ public class Controllable
     private Vector3 localRight;
     private State state;
 
-    public Vector3 position { get => transform.position; }
+    private Vector3 overallMove;
+
+    public Vector3 position { get => rb.position; }
 
     public Controllable(GameObject segment, LayerMask layers, Vector3 localUp, Vector3 localRight)
     {
@@ -87,16 +89,15 @@ public class Controllable
             bool eitherBottomTouching = hitDistances[BOTTOMLEFT] > 0 || hitDistances[BOTTOMRIGHT] > 0;
 
             Vector3 averageBottomPoint = hitPoints[BOTTOMLEFT] + hitPoints[BOTTOMRIGHT];
-            for (int i = 0; i < hitPoints.Length; ++i)
-                averageBottomPoint += hitPoints[i];
-            averageBottomPoint /= (float)numHits;
+            if (bothBottomTouching)
+                averageBottomPoint /= 2f;
 
             if (averageBottomPoint.sqrMagnitude > 0)
             {
                 float desiredY = averageBottomPoint.y + walkHeight;
                 Vector3 desiredPosition = new Vector3(rb.position.x, desiredY, rb.position.z);
-                Vector3 newPosition = Vector3.Lerp(rb.position, desiredPosition, heightAlignmentSpeed);
-                rb.MovePosition(newPosition);
+                Vector3 newPosition = desiredPosition;
+                overallMove += (newPosition - rb.position) * heightAlignmentSpeed;
             }
 
             if (eitherBottomTouching)
@@ -105,7 +106,7 @@ public class Controllable
                 if (bothBottomTouching)
                     averageNormal /= 2f;
 
-                float dot = Vector3.Dot(transform.rotation * localUp, averageNormal) * 90 - 90;
+                float dot = 90 - Vector3.Dot(transform.rotation * localUp, averageNormal) * 90;
                 Quaternion desiredRotation = Quaternion.Euler(0, 0, dot);
                 Quaternion newRotation = Quaternion.Slerp(rb.rotation, desiredRotation, rotationAlignmentSpeed);
                 rb.MoveRotation(newRotation);
@@ -139,7 +140,9 @@ public class Controllable
     {
         if (state == State.Controlled)
         {
-            rb.MovePosition(rb.position + new Vector3(input * moveSpeed, 0, 0));
+            overallMove += new Vector3(input * moveSpeed, 0, 0);
+            rb.MovePosition(rb.position + overallMove);
+            overallMove = Vector3.zero;
         }
     }
 }
