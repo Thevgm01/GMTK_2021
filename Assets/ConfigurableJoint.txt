@@ -1,0 +1,21 @@
+IMPORTANT ATTRIBUTES
+
+Rigidbody
+	Mass - Determines how light the spring segments are
+		
+Configurable Joint
+	Anchor - Where this joint should stay (probably keep at 0)
+	Connected Anchor - Where the connected joint should stay relative to this one (slightly negative y)
+	Angular Z Motion - Limited
+	
+	Angular Z Limit
+		Limit - The maximum degrees any given segments can bend
+		Bounciness - How much they should bounce once they hit this limit
+		
+	X Drive
+		Position Spring - How much the segments align in the x direction (fairly high)
+	Y Drive
+		Position Spring - How much the segments align in the y direction (the main slinky direction, also fairly high)
+	
+	Angular YZ Drive
+		Position Spring - How much the spring maintains its angles (fairly low)
