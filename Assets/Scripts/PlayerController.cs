@@ -9,9 +9,11 @@ public class PlayerController : MonoBehaviour
     public LayerMask collisionLayers;
     public float rayDistance = 1f;
     public float walkHeight = 0.5f;
+    public float lockHeight = 0.2f;
     public float walkSpeed = 1f;
     public float heightAlignmentSpeed = 3f;
     public float rotationAlignmentSpeed = 5f;
+    public float jumpImpulse = 2;
 
     Spring spring;
 
@@ -37,6 +39,7 @@ public class PlayerController : MonoBehaviour
     {
         Controllable.rayDistance = rayDistance;
         Controllable.walkHeight = walkHeight;
+        Controllable.lockHeight = lockHeight;
         Controllable.walkSpeed = walkSpeed;
         Controllable.heightAlignmentSpeed = heightAlignmentSpeed;
         Controllable.rotationAlignmentSpeed = rotationAlignmentSpeed;
@@ -47,26 +50,61 @@ public class PlayerController : MonoBehaviour
             {
                 controlled = head;
                 head.AssumeControl();
-                tail.RemoveControl();
-                spring.SetStiffnessPerJoint(50, spring.defaultStiffness);
+                tail.ReleaseControl();
+
+                if (tail.IsLocked()) spring.ResetStiffness();
+                else spring.SetStiffnessPerJoint(50, spring.defaultStiffness);
             }
             else
             {
                 controlled = tail;
                 tail.AssumeControl();
-                head.RemoveControl();
-                spring.SetStiffnessPerJoint(spring.defaultStiffness, 50);
+                head.ReleaseControl();
+
+                if (head.IsLocked()) spring.ResetStiffness();
+                else spring.SetStiffnessPerJoint(spring.defaultStiffness, 50);
             }
         }
 
-        hInputSum += Input.GetAxisRaw("Horizontal") * Time.deltaTime;
+        float hAxis = Input.GetAxisRaw("Horizontal");
+        float vAxis = Input.GetAxisRaw("Vertical");
+        hInputSum += hAxis * Time.deltaTime;
+
+        if (controlled != null && !controlled.IsLocked() && (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.D)))
+        {
+            controlled.AssumeControl();
+        }
+
+        if (vAxis < 0)
+        {
+            controlled.Lock();
+        }
+        else if (vAxis > 0)
+        {
+            controlled.AssumeControl();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (controlled.IsFree())
+            {
+                head.Free();
+                tail.Free();
+            }
+            else
+            {
+                controlled.Jump(jumpImpulse);
+            }
+        }
     }
 
     void FixedUpdate()
     {
         head.DoRaycastTests();
         tail.DoRaycastTests();
-        controlled?.ApplyMovement(hInputSum);
+        controlled?.AddHInput(hInputSum);
+        head.ApplyMovement();
+        tail.ApplyMovement();
 
         hInputSum = 0;
     }

@@ -87,6 +87,11 @@ public class Spring : MonoBehaviour
         }
     }
 
+    public void ResetStiffness()
+    {
+        SetStiffnessPerJoint(defaultStiffness, defaultStiffness);
+    }
+
     void Awake()
     {
         ConfigurableJoint lastJoint = segments[segments.Count - 1].GetComponent<ConfigurableJoint>();

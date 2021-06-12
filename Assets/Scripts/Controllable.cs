@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Controllable
 {
-    public static float rayDistance, walkHeight, walkSpeed, heightAlignmentSpeed, rotationAlignmentSpeed;
+    public static float rayDistance, walkHeight, lockHeight, walkSpeed, heightAlignmentSpeed, rotationAlignmentSpeed;
 
     private enum State
     {
@@ -24,7 +24,7 @@ public class Controllable
 
     private Vector3 overallMove;
     private float[] hitDistances;
-    const int LEFT = 0, BOTTOMLEFT = 1, RIGHT = 2, BOTTOMRIGHT = 3;
+    private const int LEFT = 0, BOTTOMLEFT = 1, RIGHT = 2, BOTTOMRIGHT = 3;
 
     public Vector3 position { get => rb.position; }
 
@@ -97,7 +97,8 @@ public class Controllable
 
             if (averageBottomPoint.sqrMagnitude > 0)
             {
-                float desiredY = averageBottomPoint.y + walkHeight;
+                float desiredHeight = state == State.Locked ? lockHeight : walkHeight;
+                float desiredY = averageBottomPoint.y + desiredHeight;
                 Vector3 desiredPosition = new Vector3(rb.position.x, desiredY, rb.position.z);
                 Vector3 newPosition = desiredPosition;
                 overallMove += (newPosition - rb.position) * heightAlignmentSpeed;
@@ -125,24 +126,26 @@ public class Controllable
         }
     }
 
-    public void RemoveControl()
+    public void Free()
     {
-        if (state == State.Controlled)
-        {
-            state = State.Free;
-            rb.isKinematic = false;
-        }
+        state = State.Free;
+        rb.isKinematic = false;
     }
 
     public void AssumeControl()
     {
-        if (state == State.Free)
+        state = State.Controlled;
+    }
+
+    public void ReleaseControl()
+    {
+        if (state == State.Controlled)
         {
-            state = State.Controlled;
+            Free();
         }
     }
 
-    public void ApplyMovement(float input)
+    public void AddHInput(float input)
     {
         if (state == State.Controlled)
         {
@@ -150,13 +153,36 @@ public class Controllable
             if ((horizontal < 0 && (hitDistances[LEFT] == 0f || hitDistances[LEFT] > 0.2f)) ||
                 (horizontal > 0 && (hitDistances[RIGHT] == 0f || hitDistances[RIGHT] > 0.2f)))
                 overallMove += transform.rotation * localRight * horizontal;
-            rb.MovePosition(rb.position + overallMove);
-            overallMove = Vector3.zero;
         }
+    }
+
+    public void ApplyMovement()
+    {
+        rb.MovePosition(rb.position + overallMove);
+        overallMove = Vector3.zero;
     }
 
     public void Lock()
     {
         state = State.Locked;
+    }
+
+    public bool IsLocked()
+    {
+        return state == State.Locked;
+    }
+
+    public bool IsFree()
+    {
+        return state == State.Free;
+    }
+
+    public void Jump(float impulse)
+    {
+        if (state != State.Free)
+        {
+            Free();
+            rb.AddForce(transform.rotation * localUp * impulse * Time.fixedDeltaTime, ForceMode.Impulse);
+        }
     }
 }
