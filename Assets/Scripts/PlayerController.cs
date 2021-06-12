@@ -35,6 +35,12 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Controllable.rayDistance = rayDistance;
+        Controllable.walkHeight = walkHeight;
+        Controllable.walkSpeed = walkSpeed;
+        Controllable.heightAlignmentSpeed = heightAlignmentSpeed;
+        Controllable.rotationAlignmentSpeed = rotationAlignmentSpeed;
+
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             if (controlled == null || controlled == tail)
@@ -58,9 +64,9 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        head.DoRaycastTests(rayDistance, walkHeight, heightAlignmentSpeed, rotationAlignmentSpeed);
-        tail.DoRaycastTests(rayDistance, walkHeight, heightAlignmentSpeed, rotationAlignmentSpeed);
-        controlled?.ApplyMovement(hInputSum, walkSpeed);
+        head.DoRaycastTests();
+        tail.DoRaycastTests();
+        controlled?.ApplyMovement(hInputSum);
 
         hInputSum = 0;
     }

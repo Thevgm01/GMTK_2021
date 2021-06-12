@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Controllable
 {
+    public static float rayDistance, walkHeight, walkSpeed, heightAlignmentSpeed, rotationAlignmentSpeed;
+
     private enum State
     {
         Free,
@@ -38,7 +40,7 @@ public class Controllable
         this.state = State.Free;
     }
 
-    public void DoRaycastTests(float rayDistance, float walkHeight, float heightAlignmentSpeed, float rotationAlignmentSpeed)
+    public void DoRaycastTests()
     {
         if (state == State.Free)
         {
@@ -140,16 +142,21 @@ public class Controllable
         }
     }
 
-    public void ApplyMovement(float input, float moveSpeed)
+    public void ApplyMovement(float input)
     {
         if (state == State.Controlled)
         {
-            float horizontal = input * moveSpeed;
+            float horizontal = input * walkSpeed;
             if ((horizontal < 0 && (hitDistances[LEFT] == 0f || hitDistances[LEFT] > 0.2f)) ||
                 (horizontal > 0 && (hitDistances[RIGHT] == 0f || hitDistances[RIGHT] > 0.2f)))
                 overallMove += transform.rotation * localRight * horizontal;
             rb.MovePosition(rb.position + overallMove);
             overallMove = Vector3.zero;
         }
+    }
+
+    public void Lock()
+    {
+        state = State.Locked;
     }
 }
