@@ -126,6 +126,10 @@ public class PlayerSpring : MonoBehaviour
         {
             Ungrab();
         }
+
+        Vector3 newCamPos = GetAveragePosition();
+        newCamPos.z = mainCam.transform.position.z;
+        mainCam.transform.position = newCamPos;
     }
 
     void FixedUpdate()
@@ -191,5 +195,10 @@ public class PlayerSpring : MonoBehaviour
                 }
             }
         }
+    }
+
+    public Vector3 GetAveragePosition()
+    {
+        return (segmentA.transform.position + segmentB.transform.position) / 2f;
     }
 }
