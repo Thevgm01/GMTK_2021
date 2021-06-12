@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class PlayerSpring : MonoBehaviour
 {
@@ -29,7 +30,7 @@ public class PlayerSpring : MonoBehaviour
         }
         while (numSegments > segments.Count)
         {
-            GameObject newSegment = Instantiate(springSegment);
+            GameObject newSegment = (GameObject)PrefabUtility.InstantiatePrefab(springSegment);
             newSegment.transform.parent = transform;
             newSegment.transform.localPosition = Vector3.zero;
             newSegment.name = "Spring " + numSegments;
