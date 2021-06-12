@@ -106,8 +106,9 @@ public class Controllable
                 if (bothBottomTouching)
                     averageNormal /= 2f;
 
-                float dot = 90 - Vector3.Dot(transform.rotation * localUp, averageNormal) * 90;
-                Quaternion desiredRotation = Quaternion.Euler(0, 0, dot);
+                Debug.DrawRay(rb.position, averageNormal, Color.red);
+                float surfaceAngle = Mathf.Atan2(averageNormal.y, averageNormal.x) * Mathf.Rad2Deg - 90;
+                Quaternion desiredRotation = Quaternion.Euler(0, 0, surfaceAngle);
                 Quaternion newRotation = Quaternion.Slerp(rb.rotation, desiredRotation, rotationAlignmentSpeed);
                 rb.MoveRotation(newRotation);
             }
@@ -140,7 +141,8 @@ public class Controllable
     {
         if (state == State.Controlled)
         {
-            overallMove += new Vector3(input * moveSpeed, 0, 0);
+            Vector3 inputMovement = transform.rotation * localRight * input * moveSpeed;
+            overallMove += inputMovement;
             rb.MovePosition(rb.position + overallMove);
             overallMove = Vector3.zero;
         }

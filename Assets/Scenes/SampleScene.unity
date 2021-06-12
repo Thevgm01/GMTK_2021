@@ -1527,7 +1527,7 @@ MonoBehaviour:
   rayDistance: 1
   walkHeight: 0.5
   walkSpeed: 3
-  heightAlignmentSpeed: 3
+  heightAlignmentSpeed: 5
   rotationAlignmentSpeed: 5
 --- !u!1 &1488204392
 GameObject:
