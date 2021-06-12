@@ -41,8 +41,8 @@ public class PlayerController : MonoBehaviour
         Controllable.walkHeight = walkHeight;
         Controllable.lockHeight = lockHeight;
         Controllable.walkSpeed = walkSpeed;
-        Controllable.heightAlignmentSpeed = heightAlignmentSpeed;
-        Controllable.rotationAlignmentSpeed = rotationAlignmentSpeed;
+        Controllable.heightAlignmentSpeed = heightAlignmentSpeed * Time.fixedDeltaTime;
+        Controllable.rotationAlignmentSpeed = rotationAlignmentSpeed * Time.fixedDeltaTime;
 
         if (Input.GetKeyDown(KeyCode.Tab))
         {
@@ -52,8 +52,8 @@ public class PlayerController : MonoBehaviour
                 head.AssumeControl();
                 tail.ReleaseControl();
 
-                if (tail.IsLocked()) spring.ResetStiffness();
-                else spring.SetStiffnessPerJoint(50, spring.defaultStiffness);
+                if (tail.IsLocked()) SetStiffness(null);
+                else SetStiffness(controlled);
             }
             else
             {
@@ -61,8 +61,8 @@ public class PlayerController : MonoBehaviour
                 tail.AssumeControl();
                 head.ReleaseControl();
 
-                if (head.IsLocked()) spring.ResetStiffness();
-                else spring.SetStiffnessPerJoint(spring.defaultStiffness, 50);
+                if (head.IsLocked()) SetStiffness(null);
+                else SetStiffness(controlled);
             }
         }
 
@@ -73,6 +73,7 @@ public class PlayerController : MonoBehaviour
         if (controlled != null && !controlled.IsLocked() && (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.D)))
         {
             controlled.AssumeControl();
+            SetStiffness(controlled);
         }
 
         if (vAxis < 0)
@@ -94,8 +95,16 @@ public class PlayerController : MonoBehaviour
             else
             {
                 controlled.Jump(jumpImpulse);
+                SetStiffness(null);
             }
         }
+    }
+
+    void SetStiffness(Controllable front)
+    {
+        if (front == null) spring.ResetStiffness();
+        else if (front == head) spring.SetStiffnessPerJoint(50, spring.defaultStiffness);
+        else if (front == tail) spring.SetStiffnessPerJoint(spring.defaultStiffness, 50);
     }
 
     void FixedUpdate()

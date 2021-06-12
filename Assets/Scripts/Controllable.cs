@@ -47,9 +47,6 @@ public class Controllable
             return;
         }
 
-        heightAlignmentSpeed *= Time.fixedDeltaTime;
-        rotationAlignmentSpeed *= Time.fixedDeltaTime;
-
         hitDistances = new float[4];
         Vector3[] hitPoints = new Vector3[4];
         Vector3[] hitNormals = new Vector3[4];
@@ -114,6 +111,8 @@ public class Controllable
                 float upAngle = Mathf.Atan2(localUp.y, localUp.x) * Mathf.Rad2Deg - 90;
                 Quaternion desiredRotation = Quaternion.Euler(0, 0, surfaceAngle - upAngle);
                 Quaternion newRotation = Quaternion.Slerp(rb.rotation, desiredRotation, rotationAlignmentSpeed);
+                if (hitDistances[LEFT] > 0) rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z - rotationAlignmentSpeed * 50));
+
                 rb.MoveRotation(newRotation);
             }
             else
