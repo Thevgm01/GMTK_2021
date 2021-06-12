@@ -29,7 +29,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         head = new Controllable(spring.segments[0], collisionLayers, Vector3.up, Vector3.right);
-        tail = new Controllable(spring.segments[spring.segments.Count - 1], collisionLayers, Vector3.down, Vector3.left);
+        tail = new Controllable(spring.segments[spring.segments.Count - 1], collisionLayers, Vector3.up, Vector3.right);
     }
 
     // Update is called once per frame

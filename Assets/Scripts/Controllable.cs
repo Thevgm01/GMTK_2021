@@ -21,6 +21,8 @@ public class Controllable
     private State state;
 
     private Vector3 overallMove;
+    private float[] hitDistances;
+    const int LEFT = 0, BOTTOMLEFT = 1, RIGHT = 2, BOTTOMRIGHT = 3;
 
     public Vector3 position { get => rb.position; }
 
@@ -46,8 +48,7 @@ public class Controllable
         heightAlignmentSpeed *= Time.fixedDeltaTime;
         rotationAlignmentSpeed *= Time.fixedDeltaTime;
 
-        const int LEFT = 0, BOTTOMLEFT = 1, RIGHT = 2, BOTTOMRIGHT = 3;
-        float[] hitDistances = new float[4];
+        hitDistances = new float[4];
         Vector3[] hitPoints = new Vector3[4];
         Vector3[] hitNormals = new Vector3[4];
         bool anyHit = false;
@@ -141,8 +142,10 @@ public class Controllable
     {
         if (state == State.Controlled)
         {
-            Vector3 inputMovement = transform.rotation * localRight * input * moveSpeed;
-            overallMove += inputMovement;
+            float horizontal = input * moveSpeed;
+            if ((horizontal < 0 && (hitDistances[LEFT] == 0f || hitDistances[LEFT] > 0.2f)) ||
+                (horizontal > 0 && (hitDistances[RIGHT] == 0f || hitDistances[RIGHT] > 0.2f)))
+                overallMove += transform.rotation * new Vector3(horizontal, 0, 0);
             rb.MovePosition(rb.position + overallMove);
             overallMove = Vector3.zero;
         }
