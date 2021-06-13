@@ -31,6 +31,8 @@ public class Controllable
 
     Controllable other;
 
+    AnimationController animator;
+
     public Controllable(GameObject segment, LayerMask layers, Vector3 localUp, Vector3 localRight)
     {
         this.segment = segment;
@@ -46,6 +48,16 @@ public class Controllable
     public void SetOther(Controllable other)
     {
         this.other = other;
+    }
+
+    public void SetAnimator(GameObject animator)
+    {
+        animator.transform.parent = transform;
+        animator.transform.localPosition = -localUp * 0.8f;
+        animator.transform.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(localUp.y, localUp.x) * Mathf.Rad2Deg - 90);
+        animator.transform.localScale = new Vector3(1, 0.75f / transform.localScale.y, 1);
+        animator.transform.localScale /= 2;
+        this.animator = animator.GetComponent<AnimationController>();
     }
 
     public void DoRaycastTests()
@@ -169,6 +181,7 @@ public class Controllable
     {
         state = State.Free;
         rb.isKinematic = false;
+        animator.SetFlying();
     }
 
     public void AssumeControl(bool force)
@@ -177,6 +190,7 @@ public class Controllable
         {
             state = State.Controlled;
         }
+        animator.SetColor(true);
     }
 
     public void ReleaseControl()
@@ -185,6 +199,7 @@ public class Controllable
         {
             Free();
         }
+        animator.SetColor(false);
     }
 
     public void AddHInput(float input)
@@ -199,7 +214,12 @@ public class Controllable
                 float newDistance = Vector3.Distance(position + newMove, other.position);
                 if (newDistance > curDistance)
                     newMove *= 1f - curDistance / maxStretchLength;
+                animator.GiveMovement(newMove.magnitude, Mathf.Sign(horizontal), curDistance / maxStretchLength > 0.5f);
                 overallMove += newMove;
+            }
+            else if (horizontal == 0)
+            {
+                animator.SetIdle();
             }
         }
     }
@@ -213,6 +233,7 @@ public class Controllable
     public void Lock()
     {
         state = State.Locked;
+        animator.SetLocked();
     }
 
     public bool IsLocked()

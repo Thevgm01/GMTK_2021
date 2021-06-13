@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public GameObject animator;
+
     [Header("Walking")]
     [Range(0, 1)]
     public LayerMask collisionLayers;
@@ -38,6 +40,9 @@ public class PlayerController : MonoBehaviour
         head.SetOther(tail);
         tail.SetOther(head);
         controlled = head;
+        head.SetAnimator(Instantiate(animator));
+        tail.SetAnimator(Instantiate(animator));
+        tail.ReleaseControl();
 
         ResetCheckpoint();
     }
@@ -90,8 +95,8 @@ public class PlayerController : MonoBehaviour
                 head.AssumeControl(false);
                 tail.ReleaseControl();
 
-                if (tail.IsLocked()) SetStiffness(null);
-                else SetStiffness(controlled);
+                if (tail.IsFree() && !head.IsLocked()) SetStiffness(controlled);
+                else SetStiffness(null);
             }
             else
             {
@@ -99,8 +104,8 @@ public class PlayerController : MonoBehaviour
                 tail.AssumeControl(false);
                 head.ReleaseControl();
 
-                if (head.IsLocked()) SetStiffness(null);
-                else SetStiffness(controlled);
+                if (head.IsFree() && !tail.IsLocked()) SetStiffness(controlled);
+                else SetStiffness(null);
             }
         }
 
