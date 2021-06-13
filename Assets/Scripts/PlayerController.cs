@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     public float heightAlignmentSpeed = 3f;
     public float rotationAlignmentSpeed = 5f;
     public float jumpImpulse = 2;
+    public float maxStretchLength;
 
     Spring spring;
 
@@ -46,6 +47,7 @@ public class PlayerController : MonoBehaviour
         Controllable.walkSpeed = walkSpeed;
         Controllable.heightAlignmentSpeed = heightAlignmentSpeed * Time.fixedDeltaTime;
         Controllable.rotationAlignmentSpeed = rotationAlignmentSpeed * Time.fixedDeltaTime;
+        Controllable.maxStretchLength = maxStretchLength;
 
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {

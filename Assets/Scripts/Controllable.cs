@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Controllable
 {
-    public static float rayDistance, walkHeight, lockHeight, walkSpeed, heightAlignmentSpeed, rotationAlignmentSpeed;
+    public static float rayDistance, walkHeight, lockHeight, walkSpeed, heightAlignmentSpeed, rotationAlignmentSpeed, maxStretchLength;
 
     private enum State
     {
@@ -113,7 +113,7 @@ public class Controllable
                 if (validNormals[i]) anyValidNormal = true;
             }
 
-            bool canHugWalls = other.IsLocked() || CheckUpDot(transform.rotation * localUp, 0.7f);
+            bool canHugWalls = other.IsLocked() || CheckUpDot(transform.rotation * localUp, 0.8f);
             canJump = hits[BOTTOMLEFT] || hits[BOTTOMRIGHT];
             canMoveLeft = !hits[LEFT] || hitDistances[LEFT] > 0.2f;
             canMoveRight = !hits[RIGHT] || hitDistances[RIGHT] > 0.2f;
@@ -193,7 +193,14 @@ public class Controllable
         {
             float horizontal = input * walkSpeed;
             if ((horizontal < 0 && canMoveLeft) || (horizontal > 0 && canMoveRight))
-                overallMove += transform.rotation * localRight * horizontal;
+            {
+                Vector3 newMove = transform.rotation * localRight * horizontal;
+                float curDistance = Vector3.Distance(position, other.position);
+                float newDistance = Vector3.Distance(position + newMove, other.position);
+                if (newDistance > curDistance)
+                    newMove *= 1f - curDistance / maxStretchLength;
+                overallMove += newMove;
+            }
         }
     }
 
