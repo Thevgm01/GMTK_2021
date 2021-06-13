@@ -35,6 +35,7 @@ public class Spring : MonoBehaviour
 
     private void SetSegments()
     {
+        /*
         while (segments.Count > 0 && segments[segments.Count - 1] == null)
         {
             segments.RemoveAt(segments.Count - 1);
@@ -58,6 +59,7 @@ public class Spring : MonoBehaviour
             }
             segments.Add(newSegment);
         }
+        */
     }
 
     public void ResetPositions()
