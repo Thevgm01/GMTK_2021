@@ -8,6 +8,8 @@ public class ToyBoxLidStopper : MonoBehaviour
     HingeJoint hinge;
     Quaternion maxQuat;
 
+    bool awaitStop = false;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -15,11 +17,13 @@ public class ToyBoxLidStopper : MonoBehaviour
         maxQuat = Quaternion.Euler(hinge.limits.max, 0, 0);
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
-        float dot = Mathf.Abs(Quaternion.Dot(rb.rotation, maxQuat));
-        if (dot < 0.0001f)
+        if (rb.angularVelocity != Vector3.zero)
+        {
+            awaitStop = true;
+        }
+        else if (awaitStop)
         {
             rb.isKinematic = true;
             Destroy(hinge);
