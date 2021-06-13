@@ -23,17 +23,20 @@ public class Controllable
     private State state;
 
     private Vector3 overallMove;
-    private float[] hitDistances;
+    private bool canMoveLeft, canMoveRight;
     private const int LEFT = 0, BOTTOMLEFT = 1, RIGHT = 2, BOTTOMRIGHT = 3;
 
     public Vector3 position { get => rb.position; }
 
-    public Controllable(GameObject segment, LayerMask layers, Vector3 localUp, Vector3 localRight)
+    Controllable other;
+
+    public Controllable(GameObject segment, Controllable other, LayerMask layers, Vector3 localUp, Vector3 localRight)
     {
         this.segment = segment;
         this.transform = segment.transform;
         this.rb = segment.GetComponent<Rigidbody>();
         this.radius = segment.GetComponent<BoxCollider>().bounds.size.x / 2f;
+        this.other = other;
         this.layers = layers;
         this.localUp = localUp;
         this.localRight = localRight;
@@ -47,7 +50,9 @@ public class Controllable
             return;
         }
 
-        hitDistances = new float[4];
+        // Gather raycast hit info
+        bool[] hits = new bool[4];
+        float[] hitDistances = new float[4];
         Vector3[] hitPoints = new Vector3[4];
         Vector3[] hitNormals = new Vector3[4];
         bool anyHit = false;
@@ -69,6 +74,7 @@ public class Controllable
                 if (rayHit)
                 {
                     int index = side * 2 + dir;
+                    hits[index] = true;
                     hitDistances[index] = hit.distance;
                     hitPoints[index] = hit.point;
                     hitNormals[index] = hit.normal;
@@ -82,26 +88,37 @@ public class Controllable
             }
         }
 
+        // Move and rotate the segment
         rb.isKinematic = anyHit;
         if (anyHit)
         {
             bool bothBottomTouching = hitDistances[BOTTOMLEFT] > 0 && hitDistances[BOTTOMRIGHT] > 0;
             bool eitherBottomTouching = hitDistances[BOTTOMLEFT] > 0 || hitDistances[BOTTOMRIGHT] > 0;
 
-            Vector3 averageBottomPoint = hitPoints[BOTTOMLEFT] + hitPoints[BOTTOMRIGHT];
-            if (bothBottomTouching)
-                averageBottomPoint /= 2f;
-
-            if (averageBottomPoint.sqrMagnitude > 0)
+            // Movement
+            // If either of the bottom probes hit a surface, move the center of the segment to just above said surface
+            if (hits[BOTTOMLEFT] || hits[BOTTOMRIGHT])
             {
+                Vector3 averageBottomPoint = hitPoints[BOTTOMLEFT] + hitPoints[BOTTOMRIGHT];
+                if (hits[BOTTOMLEFT] && hits[BOTTOMRIGHT])
+                    averageBottomPoint /= 2f;
+
                 float desiredHeight = state == State.Locked ? lockHeight : walkHeight;
                 float desiredY = averageBottomPoint.y + desiredHeight;
                 Vector3 desiredPosition = new Vector3(rb.position.x, desiredY, rb.position.z);
                 Vector3 newPosition = desiredPosition;
                 overallMove += (newPosition - rb.position) * heightAlignmentSpeed;
             }
+            else if (hits[LEFT] || hits[RIGHT])
+            {
+                overallMove += new Vector3(0, -heightAlignmentSpeed, 0);
+            }
 
-            if (eitherBottomTouching)
+            canMoveLeft = !hits[LEFT] || hitDistances[LEFT] > 0.2f;
+            canMoveRight = !hits[RIGHT] || hitDistances[RIGHT] > 0.2f;
+
+            // Rotation
+            if (hits[BOTTOMLEFT] && hits[BOTTOMRIGHT])
             {
                 Vector3 averageNormal = hitNormals[BOTTOMLEFT] + hitNormals[BOTTOMRIGHT];
                 if (bothBottomTouching)
@@ -117,10 +134,10 @@ public class Controllable
             }
             else
             {
-                if (hitDistances[LEFT] > 0) rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z - rotationAlignmentSpeed * 50));
-                if (hitDistances[RIGHT] > 0) rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z + rotationAlignmentSpeed * 50));
-                if (hitDistances[LEFT] > 0 || hitDistances[RIGHT] > 0)
-                    overallMove += new Vector3(0, -heightAlignmentSpeed, 0);
+                if (hits[LEFT] || hits[BOTTOMLEFT])
+                    rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z - rotationAlignmentSpeed * 50));
+                if (hits[RIGHT] || hits[BOTTOMRIGHT])
+                    rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z + rotationAlignmentSpeed * 50));
             }
         }
     }
@@ -149,8 +166,7 @@ public class Controllable
         if (state == State.Controlled)
         {
             float horizontal = input * walkSpeed;
-            if ((horizontal < 0 && (hitDistances[LEFT] == 0f || hitDistances[LEFT] > 0.2f)) ||
-                (horizontal > 0 && (hitDistances[RIGHT] == 0f || hitDistances[RIGHT] > 0.2f)))
+            if ((horizontal < 0 && canMoveLeft) || (horizontal > 0 && canMoveRight))
                 overallMove += transform.rotation * localRight * horizontal;
         }
     }

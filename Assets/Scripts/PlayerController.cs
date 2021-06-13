@@ -30,8 +30,9 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        head = new Controllable(spring.segments[0], collisionLayers, Vector3.up, Vector3.right);
-        tail = new Controllable(spring.segments[spring.segments.Count - 1], collisionLayers, Vector3.down, Vector3.left);
+        head = new Controllable(spring.segments[0], tail, collisionLayers, Vector3.up, Vector3.right);
+        tail = new Controllable(spring.segments[spring.segments.Count - 1], head, collisionLayers, Vector3.down, Vector3.left);
+        controlled = head;
     }
 
     // Update is called once per frame
@@ -44,9 +45,9 @@ public class PlayerController : MonoBehaviour
         Controllable.heightAlignmentSpeed = heightAlignmentSpeed * Time.fixedDeltaTime;
         Controllable.rotationAlignmentSpeed = rotationAlignmentSpeed * Time.fixedDeltaTime;
 
-        if (Input.GetKeyDown(KeyCode.Tab))
+        if (Input.GetKeyDown(KeyCode.E))
         {
-            if (controlled == null || controlled == tail)
+            if (controlled == tail)
             {
                 controlled = head;
                 head.AssumeControl();
@@ -70,7 +71,7 @@ public class PlayerController : MonoBehaviour
         float vAxis = Input.GetAxisRaw("Vertical");
         hInputSum += hAxis * Time.deltaTime;
 
-        if (controlled != null && !controlled.IsLocked() && (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.D)))
+        if (!controlled.IsLocked() && (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.D)))
         {
             controlled.AssumeControl();
             SetStiffness(controlled);
@@ -111,7 +112,7 @@ public class PlayerController : MonoBehaviour
     {
         head.DoRaycastTests();
         tail.DoRaycastTests();
-        controlled?.AddHInput(hInputSum);
+        controlled.AddHInput(hInputSum);
         head.ApplyMovement();
         tail.ApplyMovement();
 
