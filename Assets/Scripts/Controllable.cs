@@ -32,6 +32,8 @@ public class Controllable
     Controllable other;
 
     AnimationController animator;
+    CharacterSounds sounds;
+    AudioSource runSound;
 
     public Controllable(GameObject segment, LayerMask layers, Vector3 localUp, Vector3 localRight)
     {
@@ -58,6 +60,12 @@ public class Controllable
         animator.transform.localScale = new Vector3(1, 0.75f / transform.localScale.y, 1);
         animator.transform.localScale /= 2;
         this.animator = animator.GetComponent<AnimationController>();
+    }
+
+    public void SetSounds(CharacterSounds sounds, AudioSource runSound)
+    {
+        this.sounds = sounds;
+        this.runSound = runSound;
     }
 
     public void DoRaycastTests()
@@ -179,9 +187,13 @@ public class Controllable
 
     public void Free()
     {
-        state = State.Free;
-        rb.isKinematic = false;
-        animator.SetFlying();
+        if (state != State.Free)
+        {
+            state = State.Free;
+            rb.isKinematic = false;
+            animator.SetFlying();
+            AudioHelper.PlayRandomClip2DFromArray(sounds.jumpSounds.sounds, 1);
+        }
     }
 
     public void AssumeControl(bool force)
@@ -216,10 +228,12 @@ public class Controllable
                     newMove *= 1f - curDistance / maxStretchLength;
                 animator.GiveMovement(newMove.magnitude, Mathf.Sign(horizontal), curDistance / maxStretchLength > 0.5f);
                 overallMove += newMove;
+                runSound.volume = 0.5f;
             }
             else if (horizontal == 0)
             {
                 animator.SetIdle();
+                runSound.volume = 0;
             }
         }
     }
@@ -232,8 +246,12 @@ public class Controllable
 
     public void Lock()
     {
-        state = State.Locked;
-        animator.SetLocked();
+        if (state != State.Locked)
+        {
+            state = State.Locked;
+            animator.SetLocked();
+            AudioHelper.PlayRandomClip2DFromArray(sounds.lockSounds.sounds, 1);
+        }
     }
 
     public bool IsLocked()
@@ -252,6 +270,7 @@ public class Controllable
         {
             Free();
             rb.AddForce(transform.rotation * localUp * impulse * Time.fixedDeltaTime, ForceMode.Impulse);
+            runSound.volume = 0;
         }
     }
 }

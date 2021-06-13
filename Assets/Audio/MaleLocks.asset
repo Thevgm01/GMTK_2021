@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fabb3626354557f4991b8d92b30eb235, type: 3}
+  m_Name: MaleLocks
+  m_EditorClassIdentifier: 
+  sounds:
+  - {fileID: 8300000, guid: 91a9583af95749a4c9f9226ea8e5e861, type: 3}
+  - {fileID: 8300000, guid: c4d1ea236c0148e46887da229542ce50, type: 3}

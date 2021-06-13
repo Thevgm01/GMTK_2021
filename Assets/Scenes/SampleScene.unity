@@ -10649,13 +10649,29 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 9030856658893762036, guid: 512db5128ef1c7540838676c0ebc29e7, type: 3}
     - target: {fileID: 6379334195074638036, guid: 1df8a6f2f1540e240ae99c585a8bfe76, type: 3}
+      propertyPath: headSounds
+      value: 
+      objectReference: {fileID: 11400000, guid: fe8223199879d6d41913da00a98378e2, type: 2}
+    - target: {fileID: 6379334195074638036, guid: 1df8a6f2f1540e240ae99c585a8bfe76, type: 3}
       propertyPath: lockHeight
       value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 6379334195074638036, guid: 1df8a6f2f1540e240ae99c585a8bfe76, type: 3}
+      propertyPath: tailSounds
+      value: 
+      objectReference: {fileID: 11400000, guid: 8f3c5c4d39d74ce49949679420848f8a, type: 2}
+    - target: {fileID: 6379334195074638036, guid: 1df8a6f2f1540e240ae99c585a8bfe76, type: 3}
       propertyPath: rayDistance
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6379334195074638036, guid: 1df8a6f2f1540e240ae99c585a8bfe76, type: 3}
+      propertyPath: slinkySounds
+      value: 
+      objectReference: {fileID: 11400000, guid: 5c843cc3b4036c044a3a69f3d61d0cc0, type: 2}
+    - target: {fileID: 6379334195074638036, guid: 1df8a6f2f1540e240ae99c585a8bfe76, type: 3}
+      propertyPath: slinkyRunSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 3f28d6c1d1327a743bc5adc73db6657e, type: 3}
     - target: {fileID: 6379334195074638036, guid: 1df8a6f2f1540e240ae99c585a8bfe76, type: 3}
       propertyPath: maxStretchLength
       value: 15

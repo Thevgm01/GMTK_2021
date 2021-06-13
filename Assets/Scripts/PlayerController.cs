@@ -5,6 +5,10 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public GameObject animator;
+    public CharacterSounds headSounds, tailSounds;
+    public SoundList slinkySounds;
+    public AudioClip slinkyRunSound;
+    private AudioSource slinkyRunSource;
 
     [Header("Walking")]
     [Range(0, 1)]
@@ -42,6 +46,10 @@ public class PlayerController : MonoBehaviour
         controlled = head;
         head.SetAnimator(Instantiate(animator));
         tail.SetAnimator(Instantiate(animator));
+        slinkyRunSource = AudioHelper.PlayClip2D(slinkyRunSound, volume: 0, destroyWhenDone: false);
+        slinkyRunSource.loop = true;
+        head.SetSounds(headSounds, slinkyRunSource);
+        tail.SetSounds(tailSounds, slinkyRunSource);
         tail.ReleaseControl();
 
         ResetCheckpoint();

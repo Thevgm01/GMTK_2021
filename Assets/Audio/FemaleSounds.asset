@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f644b73b747892449ffefc2f5db3584, type: 3}
+  m_Name: FemaleSounds
+  m_EditorClassIdentifier: 
+  jumpSounds: {fileID: 11400000, guid: 23c2d8942ee0be749ac28753acce5838, type: 2}
+  lockSounds: {fileID: 11400000, guid: ecac524ca2e98f342a812a544cc52a4b, type: 2}

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fabb3626354557f4991b8d92b30eb235, type: 3}
+  m_Name: Slinks
+  m_EditorClassIdentifier: 
+  sounds:
+  - {fileID: 8300000, guid: 30e3b9fc16184f445ba974aeea9f4c06, type: 3}
+  - {fileID: 8300000, guid: 8cf8e220ff8a2c5439901fd15944946d, type: 3}
+  - {fileID: 8300000, guid: 71915d2ab1e261f43ae1a3a1fbb664fa, type: 3}
+  - {fileID: 8300000, guid: 3ff1f039852e7e34190e075007227ecc, type: 3}
+  - {fileID: 8300000, guid: 81c04fb1280723343bda82e989bc8804, type: 3}
+  - {fileID: 8300000, guid: e5f49f01fd8cc52428c2dbc828a9f2c8, type: 3}
+  - {fileID: 8300000, guid: 6ef01c48984a17e4285c0f98a6014cd5, type: 3}
+  - {fileID: 8300000, guid: d00bc1f95e5f16441b797a94c83d6c1b, type: 3}
+  - {fileID: 8300000, guid: dbbb9350a3e465e4a9c31d4755e59530, type: 3}
