@@ -1,10 +1,7 @@
 fileFormatVersion: 2
-guid: 557114cd367794a4090026eb5c0a59e1
+guid: 11d33c2858a7c1640aabec6a27c1222c
 TextureImporter:
-  internalIDToNameTable:
-  - first:
-      213: 6261838875085568562
-    second: Layer 3_0
+  internalIDToNameTable: []
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -48,10 +45,10 @@ TextureImporter:
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 9
-  spritePivot: {x: 0.858527, y: 0.88767964}
+  spritePivot: {x: 0.21003237, y: 0.8926645}
   spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
-  spriteGenerateFallbackPhysicsShape: 0
+  spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
   spriteTessellationDetail: -1
@@ -104,32 +101,11 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites:
-    - serializedVersion: 2
-      name: Layer 3_0
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 62
-        height: 78
-      alignment: 9
-      pivot: {x: 0.855297, y: 0.89281446}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 23af43eb74586e650800000000000000
-      internalID: 6261838875085568562
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
+    sprites: []
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 0efd1fa00af3880459d91b227d3741f2
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
