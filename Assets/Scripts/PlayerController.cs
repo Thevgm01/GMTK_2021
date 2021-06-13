@@ -68,6 +68,20 @@ public class PlayerController : MonoBehaviour
             ResetCheckpoint();
         }
 
+        if (Application.isEditor && Input.GetKey(KeyCode.R))
+        {
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                checkpoints.DecreaseCheckpoint();
+                ResetCheckpoint();
+            }
+            else if(Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                checkpoints.AdvanceCheckpoint();
+                ResetCheckpoint();
+            }
+        }
+
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
             if (controlled == tail)

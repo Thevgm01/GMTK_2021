@@ -17,16 +17,24 @@ public class CheckpointManager : MonoBehaviour
     void Update()
     {
         Vector3 position = player.GetAveragePosition();
-        if (checkpointIndex < transform.childCount && position.x >= transform.GetChild(checkpointIndex + 1).position.x)
+        if (checkpointIndex < transform.childCount - 1 && position.x >= transform.GetChild(checkpointIndex + 1).position.x)
         {
             AdvanceCheckpoint();
         }
     }
 
-    private void AdvanceCheckpoint()
+    public void AdvanceCheckpoint()
     {
-        ++checkpointIndex;
+        if (checkpointIndex < transform.childCount - 1)
+            ++checkpointIndex;
     }
+
+    public void DecreaseCheckpoint()
+    {
+        if (checkpointIndex > 0)
+            --checkpointIndex;
+    }
+
 
     public Vector3 GetCurCheckpoint()
     {
