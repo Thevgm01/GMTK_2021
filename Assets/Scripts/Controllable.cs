@@ -23,7 +23,7 @@ public class Controllable
     private State state;
 
     private Vector3 overallMove;
-    private bool canMoveLeft, canMoveRight;
+    private bool canMoveLeft, canMoveRight, canJump;
     private const int LEFT = 0, BOTTOMLEFT = 1, RIGHT = 2, BOTTOMRIGHT = 3;
     private float minDot = 0.8f;
 
@@ -94,7 +94,6 @@ public class Controllable
         }
 
         // Move and rotate the segment
-        rb.isKinematic = anyHit;
         if (anyHit)
         {
             Vector3 averageBottomPoint = hitPoints[BOTTOMLEFT] + hitPoints[BOTTOMRIGHT];
@@ -107,12 +106,24 @@ public class Controllable
                 averageBottomNormal /= 2f;
             }
             bool[] validNormals = new bool[4];
+            bool anyValidNormal = false;
             for (int i = 0; i < 4; ++i)
             {
-                validNormals[i] = CheckUpDot(hitNormals[i]);
+                validNormals[i] = CheckUpDot(hitNormals[i], minDot);
+                if (validNormals[i]) anyValidNormal = true;
             }
 
-            bool canHugWalls = other.IsLocked();
+            bool canHugWalls = other.IsLocked() || CheckUpDot(transform.rotation * localUp, 0.7f);
+            canJump = hits[BOTTOMLEFT] || hits[BOTTOMRIGHT];
+            canMoveLeft = !hits[LEFT] || hitDistances[LEFT] > 0.2f;
+            canMoveRight = !hits[RIGHT] || hitDistances[RIGHT] > 0.2f;
+
+            if (!anyValidNormal && !canHugWalls)
+            {
+                rb.isKinematic = false;
+                return;
+            }
+            rb.isKinematic = true;
 
             // Movement
             // If either of the bottom probes hit a surface, move the center of the segment to just above said surface
@@ -126,9 +137,6 @@ public class Controllable
             {
                 overallMove += new Vector3(0, -heightAlignmentSpeed, 0);
             }
-
-            canMoveLeft = !hits[LEFT] || hitDistances[LEFT] > 0.2f;
-            canMoveRight = !hits[RIGHT] || hitDistances[RIGHT] > 0.2f;
 
             // Rotation
             float angle = 0;
@@ -146,11 +154,15 @@ public class Controllable
 
             rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z + angle * rotationAlignmentSpeed * 50));
         }
+        else
+        {
+            rb.isKinematic = false;
+        }
     }
 
-    bool CheckUpDot(Vector3 test)
+    bool CheckUpDot(Vector3 test, float min)
     {
-        return Vector3.Dot(test, Vector3.up) > minDot;
+        return Vector3.Dot(test, Vector3.up) > min;
     }
 
     public void Free()
@@ -208,7 +220,7 @@ public class Controllable
 
     public void Jump(float impulse)
     {
-        if (state != State.Free)
+        if (canJump && state != State.Free)
         {
             Free();
             rb.AddForce(transform.rotation * localUp * impulse * Time.fixedDeltaTime, ForceMode.Impulse);

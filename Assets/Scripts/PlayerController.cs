@@ -47,7 +47,7 @@ public class PlayerController : MonoBehaviour
         Controllable.heightAlignmentSpeed = heightAlignmentSpeed * Time.fixedDeltaTime;
         Controllable.rotationAlignmentSpeed = rotationAlignmentSpeed * Time.fixedDeltaTime;
 
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.LeftShift))
         {
             if (controlled == tail)
             {
