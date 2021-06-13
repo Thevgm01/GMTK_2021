@@ -4,9 +4,15 @@ using UnityEngine;
 
 public class CameraPlayerFollower : MonoBehaviour
 {
-    public PlayerController player;
     [Min(0)]
     public float cameraSpeed;
+
+    PlayerController player;
+
+    private void Awake()
+    {
+        player = FindObjectOfType<PlayerController>();
+    }
 
     void LateUpdate()
     {
