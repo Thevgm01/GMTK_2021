@@ -54,7 +54,9 @@ public class Spring : MonoBehaviour
             {
                 GameObject previousSegment = segments[segments.Count - 1];
                 Rigidbody curBody = newSegment.GetComponent<Rigidbody>();
-                previousSegment.GetComponent<ConfigurableJoint>().connectedBody = curBody;
+                ConfigurableJoint previousJoint = previousSegment.GetComponent<ConfigurableJoint>();
+                previousJoint.connectedBody = curBody;
+                newSegment.transform.localPosition += -previousJoint.connectedAnchor * previousJoint.transform.localScale.y * segments.Count;
             }
             segments.Add(newSegment);
         }
@@ -94,7 +96,9 @@ public class Spring : MonoBehaviour
 
     void Awake()
     {
-        ConfigurableJoint lastJoint = segments[segments.Count - 1].GetComponent<ConfigurableJoint>();
+        GameObject lastSegment = segments[segments.Count - 1];
+        ConfigurableJoint lastJoint = lastSegment.GetComponent<ConfigurableJoint>();
+        lastJoint.connectedAnchor = lastSegment.transform.position;
         Destroy(lastJoint);
 
         segmentJoints = new Dictionary<GameObject, ConfigurableJoint>();
