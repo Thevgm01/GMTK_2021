@@ -22,6 +22,9 @@ public class PlayerController : MonoBehaviour
     public float jumpImpulse = 2;
     public float maxStretchLength;
 
+    float startDistance;
+    AudioSource curSquishPlayer;
+
     Spring spring;
     CheckpointManager checkpoints;
 
@@ -167,6 +170,13 @@ public class PlayerController : MonoBehaviour
         tail.ApplyMovement();
 
         hInputSum = 0;
+
+        float distance = Vector3.Distance(head.position, tail.position);
+        if (distance < startDistance * 0.95f && curSquishPlayer == null)
+        {
+            curSquishPlayer = AudioHelper.PlayRandomClip2DFromArray(slinkySounds.sounds, volume: 0.5f);
+        }
+        startDistance = distance;
     }
 
     public Vector3 GetAveragePosition()

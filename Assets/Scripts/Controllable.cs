@@ -251,6 +251,7 @@ public class Controllable
             state = State.Locked;
             animator.SetLocked();
             AudioHelper.PlayRandomClip2DFromArray(sounds.lockSounds.sounds, 1);
+            runSound.volume = 0;
         }
     }
 
