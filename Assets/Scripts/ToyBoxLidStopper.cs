@@ -19,7 +19,6 @@ public class ToyBoxLidStopper : MonoBehaviour
     void FixedUpdate()
     {
         float dot = Mathf.Abs(Quaternion.Dot(rb.rotation, maxQuat));
-        Debug.Log(dot);
         if (dot < 0.0001f)
         {
             rb.isKinematic = true;
