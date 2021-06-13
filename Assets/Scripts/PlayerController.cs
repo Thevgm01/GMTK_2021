@@ -33,6 +33,14 @@ public class PlayerController : MonoBehaviour
 
     float hInputSum;
 
+    public BoxCollider tutorializeBoundingBox;
+    public GameObject[] tutorializeAppear;
+    bool hasAppeared = false;
+
+    public BoxCollider endZone;
+
+    public bool inputBlocked = false;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -58,7 +66,7 @@ public class PlayerController : MonoBehaviour
         ResetCheckpoint();
     }
 
-    void ResetCheckpoint()
+    public void ResetCheckpoint()
     {
         transform.position = checkpoints.GetCurCheckpoint();
         spring.ResetPositions();
@@ -79,6 +87,14 @@ public class PlayerController : MonoBehaviour
         Controllable.rotationAlignmentSpeed = rotationAlignmentSpeed * Time.fixedDeltaTime;
         Controllable.maxStretchLength = maxStretchLength;
 
+        if (inputBlocked)
+            return;
+
+        if (controlled.position.x > 400)
+        {
+            FindObjectOfType<UIController>().AtEnd();
+        }
+
         if (Input.GetKeyDown(KeyCode.R))
         {
             ResetCheckpoint();
@@ -98,7 +114,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             if (controlled == tail)
             {
@@ -133,6 +149,13 @@ public class PlayerController : MonoBehaviour
         if (vAxis < 0)
         {
             controlled.Lock();
+
+            if (!hasAppeared && controlled.bounds.Intersects(tutorializeBoundingBox.bounds))
+            {
+                foreach (var obj in tutorializeAppear)
+                    obj.SetActive(true);
+                hasAppeared = true;
+            }
         }
         else if (vAxis > 0)
         {

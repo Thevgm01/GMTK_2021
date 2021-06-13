@@ -25,9 +25,10 @@ public class Controllable
     private Vector3 overallMove;
     private bool canMoveLeft, canMoveRight, canJump;
     private const int LEFT = 0, BOTTOMLEFT = 1, RIGHT = 2, BOTTOMRIGHT = 3;
-    private float minDot = 0.8f;
+    private float minDot = 0.6f;
 
     public Vector3 position { get => rb.position; }
+    public Bounds bounds { get => segment.GetComponent<BoxCollider>().bounds; }
 
     Controllable other;
 
@@ -94,7 +95,7 @@ public class Controllable
                 Vector3 raycastDirection = dir == 0 ? localRight * sideLR : -localUp;
                 raycastDirection = transform.rotation * raycastDirection;
 
-                Physics.Raycast(raycastPosition, raycastDirection, out var hit, rayDistance, layers);
+                Physics.Raycast(raycastPosition, raycastDirection, out var hit, rayDistance, layers, QueryTriggerInteraction.Ignore);
                 bool rayHit = hit.distance > 0;
                 if (rayHit)
                 {

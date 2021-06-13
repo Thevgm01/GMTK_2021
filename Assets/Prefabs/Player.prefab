@@ -93,16 +93,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f74b2626f91ad874c9952525d90828b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animator: {fileID: 9030856658893762036, guid: 512db5128ef1c7540838676c0ebc29e7, type: 3}
+  headSounds: {fileID: 11400000, guid: fe8223199879d6d41913da00a98378e2, type: 2}
+  tailSounds: {fileID: 11400000, guid: 8f3c5c4d39d74ce49949679420848f8a, type: 2}
+  slinkySounds: {fileID: 11400000, guid: 5c843cc3b4036c044a3a69f3d61d0cc0, type: 2}
+  slinkyRunSound: {fileID: 8300000, guid: 3f28d6c1d1327a743bc5adc73db6657e, type: 3}
   collisionLayers:
     serializedVersion: 2
     m_Bits: 1
   rayDistance: 1
   walkHeight: 0.5
-  lockHeight: 0.2
+  lockHeight: 0.4
   walkSpeed: 3
   heightAlignmentSpeed: 5
   rotationAlignmentSpeed: 5
   jumpImpulse: 20
+  maxStretchLength: 15
 --- !u!120 &6379334194991357753
 LineRenderer:
   m_ObjectHideFlags: 0
@@ -122,7 +128,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0ca96c432de2ae345ab77bfaeeed6cd0, type: 2}
+  - {fileID: 2100000, guid: 4290dddcd3023c24295dea792bfbac87, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
