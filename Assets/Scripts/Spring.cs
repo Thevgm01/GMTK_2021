@@ -48,18 +48,35 @@ public class Spring : MonoBehaviour
         {
             GameObject newSegment = (GameObject)PrefabUtility.InstantiatePrefab(springSegment);
             newSegment.transform.parent = transform;
-            newSegment.transform.localPosition = Vector3.zero;
             newSegment.name = "Spring " + (segments.Count + 1);
             if (segments.Count > 0)
             {
-                GameObject previousSegment = segments[segments.Count - 1];
-                Rigidbody curBody = newSegment.GetComponent<Rigidbody>();
-                ConfigurableJoint previousJoint = previousSegment.GetComponent<ConfigurableJoint>();
+                var previousSegment = segments[segments.Count - 1];
+                var curBody = newSegment.GetComponent<Rigidbody>();
+                var previousJoint = previousSegment.GetComponent<ConfigurableJoint>();
                 previousJoint.connectedBody = curBody;
-                newSegment.transform.localPosition += -previousJoint.connectedAnchor * previousJoint.transform.localScale.y * segments.Count;
             }
             segments.Add(newSegment);
         }
+    }
+
+    public void ResetPositions()
+    {
+        segments[0].transform.localPosition = Vector3.zero;
+
+        for (int i = 1; i < segments.Count; ++i)
+        {
+            var segment = segments[i];
+            var previousSegment = segments[i - 1];
+            var previousJoint = segmentJoints[previousSegment];
+            segment.transform.localPosition = Vector3.zero;
+            segment.transform.localPosition += -previousJoint.connectedAnchor * previousJoint.transform.localScale.y * i;
+            segment.transform.localRotation = Quaternion.identity;
+            var rigidbody = segmentRigidbodies[segment];
+            rigidbody.velocity = Vector3.zero;
+            rigidbody.angularVelocity = Vector3.zero;
+        }
+
     }
 
     IEnumerator DestroySegment(GameObject g)

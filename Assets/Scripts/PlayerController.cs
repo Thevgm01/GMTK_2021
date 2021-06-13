@@ -17,6 +17,7 @@ public class PlayerController : MonoBehaviour
     public float maxStretchLength;
 
     Spring spring;
+    CheckpointManager checkpoints;
 
     Controllable head, tail;
     Controllable controlled;
@@ -27,6 +28,7 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         spring = GetComponent<Spring>();
+        checkpoints = FindObjectOfType<CheckpointManager>();
     }
 
     private void Start()
@@ -36,6 +38,18 @@ public class PlayerController : MonoBehaviour
         head.SetOther(tail);
         tail.SetOther(head);
         controlled = head;
+
+        ResetCheckpoint();
+    }
+
+    void ResetCheckpoint()
+    {
+        transform.position = checkpoints.GetCurCheckpoint();
+        spring.ResetPositions();
+        controlled = head;
+        head.Free();
+        tail.Free();
+        SetStiffness(controlled);
     }
 
     // Update is called once per frame
@@ -48,6 +62,11 @@ public class PlayerController : MonoBehaviour
         Controllable.heightAlignmentSpeed = heightAlignmentSpeed * Time.fixedDeltaTime;
         Controllable.rotationAlignmentSpeed = rotationAlignmentSpeed * Time.fixedDeltaTime;
         Controllable.maxStretchLength = maxStretchLength;
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ResetCheckpoint();
+        }
 
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
