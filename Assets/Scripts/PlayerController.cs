@@ -30,8 +30,10 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        head = new Controllable(spring.segments[0], tail, collisionLayers, Vector3.up, Vector3.right);
-        tail = new Controllable(spring.segments[spring.segments.Count - 1], head, collisionLayers, Vector3.down, Vector3.left);
+        head = new Controllable(spring.segments[0], collisionLayers, Vector3.up, Vector3.right);
+        tail = new Controllable(spring.segments[spring.segments.Count - 1], collisionLayers, Vector3.down, Vector3.left);
+        head.SetOther(tail);
+        tail.SetOther(head);
         controlled = head;
     }
 
@@ -50,7 +52,7 @@ public class PlayerController : MonoBehaviour
             if (controlled == tail)
             {
                 controlled = head;
-                head.AssumeControl();
+                head.AssumeControl(false);
                 tail.ReleaseControl();
 
                 if (tail.IsLocked()) SetStiffness(null);
@@ -59,7 +61,7 @@ public class PlayerController : MonoBehaviour
             else
             {
                 controlled = tail;
-                tail.AssumeControl();
+                tail.AssumeControl(false);
                 head.ReleaseControl();
 
                 if (head.IsLocked()) SetStiffness(null);
@@ -73,7 +75,7 @@ public class PlayerController : MonoBehaviour
 
         if (!controlled.IsLocked() && (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.D)))
         {
-            controlled.AssumeControl();
+            controlled.AssumeControl(false);
             SetStiffness(controlled);
         }
 
@@ -83,7 +85,7 @@ public class PlayerController : MonoBehaviour
         }
         else if (vAxis > 0)
         {
-            controlled.AssumeControl();
+            controlled.AssumeControl(true);
         }
 
         if (Input.GetKeyDown(KeyCode.Space))

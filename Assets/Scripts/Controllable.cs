@@ -25,22 +25,27 @@ public class Controllable
     private Vector3 overallMove;
     private bool canMoveLeft, canMoveRight;
     private const int LEFT = 0, BOTTOMLEFT = 1, RIGHT = 2, BOTTOMRIGHT = 3;
+    private float minDot = 0.8f;
 
     public Vector3 position { get => rb.position; }
 
     Controllable other;
 
-    public Controllable(GameObject segment, Controllable other, LayerMask layers, Vector3 localUp, Vector3 localRight)
+    public Controllable(GameObject segment, LayerMask layers, Vector3 localUp, Vector3 localRight)
     {
         this.segment = segment;
         this.transform = segment.transform;
         this.rb = segment.GetComponent<Rigidbody>();
         this.radius = segment.GetComponent<BoxCollider>().bounds.size.x / 2f;
-        this.other = other;
         this.layers = layers;
         this.localUp = localUp;
         this.localRight = localRight;
         this.state = State.Free;
+    }
+
+    public void SetOther(Controllable other)
+    {
+        this.other = other;
     }
 
     public void DoRaycastTests()
@@ -64,7 +69,7 @@ public class Controllable
             Vector3 raycastSide = localRight * radius * sideLR;
             for (int dir = 0; dir <= 1; dir++)
             {
-                Vector3 raycastPosition = transform.rotation * raycastSide;
+                Vector3 raycastPosition = transform.rotation * raycastSide * (dir == 0 ? 1f : 0.8f);
                 raycastPosition += transform.position;
                 Vector3 raycastDirection = dir == 0 ? localRight * sideLR : -localUp;
                 raycastDirection = transform.rotation * raycastDirection;
@@ -92,22 +97,30 @@ public class Controllable
         rb.isKinematic = anyHit;
         if (anyHit)
         {
-            bool bothBottomTouching = hitDistances[BOTTOMLEFT] > 0 && hitDistances[BOTTOMRIGHT] > 0;
-            bool eitherBottomTouching = hitDistances[BOTTOMLEFT] > 0 || hitDistances[BOTTOMRIGHT] > 0;
+            Vector3 averageBottomPoint = hitPoints[BOTTOMLEFT] + hitPoints[BOTTOMRIGHT];
+            float averageBottomDistance = hitDistances[BOTTOMLEFT] + hitDistances[BOTTOMRIGHT];
+            Vector3 averageBottomNormal = hitNormals[BOTTOMLEFT] + hitNormals[BOTTOMRIGHT];
+            if (hits[BOTTOMLEFT] && hits[BOTTOMRIGHT])
+            {
+                averageBottomPoint /= 2f;
+                averageBottomDistance /= 2f;
+                averageBottomNormal /= 2f;
+            }
+            bool[] validNormals = new bool[4];
+            for (int i = 0; i < 4; ++i)
+            {
+                validNormals[i] = CheckUpDot(hitNormals[i]);
+            }
+
+            bool canHugWalls = other.IsLocked();
 
             // Movement
             // If either of the bottom probes hit a surface, move the center of the segment to just above said surface
             if (hits[BOTTOMLEFT] || hits[BOTTOMRIGHT])
             {
-                Vector3 averageBottomPoint = hitPoints[BOTTOMLEFT] + hitPoints[BOTTOMRIGHT];
-                if (hits[BOTTOMLEFT] && hits[BOTTOMRIGHT])
-                    averageBottomPoint /= 2f;
-
-                float desiredHeight = state == State.Locked ? lockHeight : walkHeight;
-                float desiredY = averageBottomPoint.y + desiredHeight;
-                Vector3 desiredPosition = new Vector3(rb.position.x, desiredY, rb.position.z);
-                Vector3 newPosition = desiredPosition;
-                overallMove += (newPosition - rb.position) * heightAlignmentSpeed;
+                float desiredHeight = IsLocked() ? lockHeight : walkHeight;
+                Vector3 desiredPosition = transform.position - transform.rotation * localUp * (averageBottomDistance - desiredHeight);
+                overallMove += (desiredPosition - rb.position) * heightAlignmentSpeed;
             }
             else if (hits[LEFT] || hits[RIGHT])
             {
@@ -118,28 +131,26 @@ public class Controllable
             canMoveRight = !hits[RIGHT] || hitDistances[RIGHT] > 0.2f;
 
             // Rotation
-            if (hits[BOTTOMLEFT] && hits[BOTTOMRIGHT])
-            {
-                Vector3 averageNormal = hitNormals[BOTTOMLEFT] + hitNormals[BOTTOMRIGHT];
-                if (bothBottomTouching)
-                    averageNormal /= 2f;
+            float angle = 0;
+            if (hits[LEFT] &&        (validNormals[LEFT]        || canHugWalls)) 
+                angle -= rayDistance - hitDistances[LEFT];
 
-                float surfaceAngle = Mathf.Atan2(averageNormal.y, averageNormal.x) * Mathf.Rad2Deg - 90;
-                float upAngle = Mathf.Atan2(localUp.y, localUp.x) * Mathf.Rad2Deg - 90;
-                Quaternion desiredRotation = Quaternion.Euler(0, 0, surfaceAngle - upAngle);
-                Quaternion newRotation = Quaternion.Slerp(rb.rotation, desiredRotation, rotationAlignmentSpeed);
-                if (hitDistances[LEFT] > 0) rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z - rotationAlignmentSpeed * 50));
+            if (hits[BOTTOMLEFT] &&  (validNormals[BOTTOMLEFT]  || canHugWalls)) 
+                angle -= rayDistance - hitDistances[BOTTOMLEFT];
 
-                rb.MoveRotation(newRotation);
-            }
-            else
-            {
-                if (hits[LEFT] || hits[BOTTOMLEFT])
-                    rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z - rotationAlignmentSpeed * 50));
-                if (hits[RIGHT] || hits[BOTTOMRIGHT])
-                    rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z + rotationAlignmentSpeed * 50));
-            }
+            if (hits[RIGHT] &&       (validNormals[RIGHT]       || canHugWalls)) 
+                angle += rayDistance - hitDistances[RIGHT];
+
+            if (hits[BOTTOMRIGHT] && (validNormals[BOTTOMRIGHT] || canHugWalls)) 
+                angle += rayDistance - hitDistances[BOTTOMRIGHT];
+
+            rb.MoveRotation(Quaternion.Euler(0, 0, rb.rotation.eulerAngles.z + angle * rotationAlignmentSpeed * 50));
         }
+    }
+
+    bool CheckUpDot(Vector3 test)
+    {
+        return Vector3.Dot(test, Vector3.up) > minDot;
     }
 
     public void Free()
@@ -148,9 +159,12 @@ public class Controllable
         rb.isKinematic = false;
     }
 
-    public void AssumeControl()
+    public void AssumeControl(bool force)
     {
-        state = State.Controlled;
+        if (force || state == State.Free)
+        {
+            state = State.Controlled;
+        }
     }
 
     public void ReleaseControl()
