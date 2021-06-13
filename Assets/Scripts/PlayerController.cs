@@ -84,7 +84,7 @@ public class PlayerController : MonoBehaviour
             ResetCheckpoint();
         }
 
-        if (Application.isEditor && Input.GetKey(KeyCode.R))
+        if (Input.GetKey(KeyCode.R))
         {
             if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
