@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df534e3f8d015a04e83f3ac199d09ac6, type: 3}
+  m_Name: ArmWalk
+  m_EditorClassIdentifier: 
+  sprites:
+  - {fileID: 7255797471816181890, guid: e98ed4e4f6334494fa96e1c3de50ee16, type: 3}
+  - {fileID: 642146194206879159, guid: 784efa1471e87f045a59afeb0424b9c7, type: 3}
+  - {fileID: 6261838875085568562, guid: 557114cd367794a4090026eb5c0a59e1, type: 3}
+  - {fileID: 1611970466183296693, guid: d1504bd9d2216ab4f85fca4694074226, type: 3}
+  - {fileID: 1756486289915339121, guid: 9166f63c6203b5541b86abc37dc945b6, type: 3}
+  - {fileID: -489288472147288824, guid: f5719d82e246d8e4c8150ce1f04450d0, type: 3}
